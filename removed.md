@@ -52,3 +52,5 @@
   --sidebar-border: oklch(0.25 0 0);
   --sidebar-ring: oklch(0.65 0.15 145);
 }
+
+
