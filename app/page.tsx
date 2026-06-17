@@ -21,22 +21,65 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handleStudentAccess = async () => {
-    if (!studentToken.trim()) {
-      alert("Please enter your clearance token");
-      return;
-    }
-
-    setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    router.push(`/student/${studentToken.trim()}`);
-  };
-
   const stats = {
     totalStudents: 1247,
     completedClearances: 892,
     pendingApprovals: 355,
     activeDepartments: 5,
+  };
+
+  // Student log in
+  const handleStudentAccess = async () => {
+    if (!studentToken.trim()) return;
+
+    setIsLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/student-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          regNo: studentToken.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast("error", data.error || "Invalid Reg Number");
+        return;
+      }
+
+      // temporary session (we upgrade later)
+      localStorage.setItem("student", JSON.stringify(data.student));
+
+      showToast("success", "Login successful. Redirecting...");
+
+      setTimeout(() => {
+        window.location.href = "/dashboard/student";
+      }, 800);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Toast notification
+  const [toast, setToast] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+
+  const showToast = (type: "success" | "error", message: string) => {
+    setToast({ type, message });
+
+    setTimeout(() => {
+      setToast({ type: null, message: "" });
+    }, 3000);
   };
 
   return (
@@ -58,16 +101,21 @@ export default function HomePage() {
               </div>
             </div>
             <div className="text-right hidden sm:flex gap-2">
-             <div className="block">
-               <p className="text-sm font-medium text-foreground">
-                Unniversity Of Nigeria Nsukka
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Student Clearance System
-              </p>
-             </div>
+              <div className="block">
+                <p className="text-sm font-medium text-foreground">
+                  Unniversity Of Nigeria Nsukka
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Student Clearance System
+                </p>
+              </div>
               <div className="">
-                <Image src="/unnlogo.png" width={45} height={45} alt="Unn logo" />
+                <Image
+                  src="/unnlogo.png"
+                  width={45}
+                  height={45}
+                  alt="Unn logo"
+                />
               </div>
             </div>
           </div>
@@ -141,7 +189,10 @@ export default function HomePage() {
               </p>
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="studentToken" className="text-xs text-muted-foreground font-medium">
+                  <Label
+                    htmlFor="studentToken"
+                    className="text-xs text-muted-foreground font-medium"
+                  >
                     Reg Number
                   </Label>
                   <Input
@@ -249,9 +300,23 @@ export default function HomePage() {
             Unniversity Of Nigeria Nsukka
           </p>
           <p className="text-xs text-muted-foreground">
-            © 2026 Idancodes. All rights reserved. 
+            © 2026 Idancodes. All rights reserved.
           </p>
         </footer>
+        {/* Toast UI */}
+        {toast.message && (
+          <div className="fixed top-5 right-5 z-50 animate-in fade-in slide-in-from-top-2">
+            <div
+              className={`px-4 py-3 rounded-lg shadow-lg text-sm border ${
+                toast.type === "error"
+                  ? "bg-red-50 border-red-200 text-red-600"
+                  : "bg-green-50 border-green-200 text-green-700"
+              }`}
+            >
+              {toast.message}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

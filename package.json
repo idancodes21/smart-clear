@@ -11,6 +11,7 @@
   "dependencies": {
     "@prisma/client": "^7.8.0",
     "@radix-ui/react-label": "^2.1.9",
+    "@radix-ui/react-progress": "^1.1.9",
     "@radix-ui/react-slot": "^1.2.5",
     "class-variance-authority": "^0.7.1",
     "lucide-react": "^1.17.0",
@@ -36,8 +37,5 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   }
 }
