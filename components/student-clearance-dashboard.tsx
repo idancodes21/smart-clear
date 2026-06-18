@@ -13,8 +13,8 @@ import {
   User,
   FileText,
 } from "lucide-react";
-import Link from "next/link";
 import { LogoutButton } from "./LogoutButton";
+import ClearanceModal from "@/components/clearance-modal";
 
 interface Student {
   id: string;
@@ -46,10 +46,15 @@ interface Props {
 export default function StudentDashboard({ student, clearances }: Props) {
   const [loading, setLoading] = useState(false);
 
-  const completed = clearances.filter((c) => c.status === "COMPLETED").length;
+  const completed = clearances.filter(
+    (clearance) => clearance.status === "COMPLETED",
+  ).length;
   const total = clearances.length;
   const progress = total ? (completed / total) * 100 : 0;
-  const totalClearances = clearances.length
+  const pending = clearances.filter((c) => c.status === "IN_PROGRESS").length;
+  const rejected = clearances.filter(
+    (clearance) => clearance.status === "REJECTED",
+  ).length;
 
   const refresh = async () => {
     setLoading(true);
@@ -82,7 +87,7 @@ export default function StudentDashboard({ student, clearances }: Props) {
   };
 
   return (
-   <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
@@ -101,15 +106,14 @@ export default function StudentDashboard({ student, clearances }: Props) {
                 <RefreshCw className={`h-4 w-4 mr-2}`} />
                 Refresh
               </Button>
-               <LogoutButton />
+              <LogoutButton />
             </div>
           </div>
         </div>
       </header>
 
-
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      {/* Student Info Card */}
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Student Info Card */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -128,7 +132,7 @@ export default function StudentDashboard({ student, clearances }: Props) {
                   <p className="text-sm text-gray-600">Reg Number</p>
                   <p className="font-medium">{student.regNo}</p>
                 </div>
-                 <div>
+                <div>
                   <p className="text-sm text-gray-600">Department</p>
                   <p className="font-medium text-sm">{student.department}</p>
                 </div>
@@ -138,78 +142,72 @@ export default function StudentDashboard({ student, clearances }: Props) {
                   <p className="text-sm text-gray-600">Level</p>
                   <p className="font-medium">{student.level} Level</p>
                 </div>
-                  <div>
+                <div>
                   <p className="text-sm text-gray-600">Email</p>
                   <p className="font-medium text-sm">{student.email}</p>
                 </div>
               </div>
-              <div className="space-y-3">
-              </div>
+              <div className="space-y-3"></div>
             </div>
           </CardContent>
         </Card>
-    
 
-      {/* Progress Overview */}
+        {/* Progress Overview */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">Clearance Progress</h3>
               <Badge variant="outline" className="text-sm">
-                0/5 Completed
+                {completed}/{total} Completed
               </Badge>
             </div>
             <Progress className="h-3 mb-4" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">0</div>
+                <div className="text-2xl font-bold text-green-600">{completed}</div>
                 <div className="text-gray-600">Approved</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">
-                 0
+                  {pending}
                 </div>
                 <div className="text-gray-600">Pending</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
-                  0
+                  {rejected}
                 </div>
                 <div className="text-gray-600">Rejected</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{totalClearances}</div>
+                <div className="text-2xl font-bold text-blue-600">{total}</div>
                 <div className="text-gray-600">Total</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-      {/* Clearance List */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {clearances.map((c) => (
-          <Card key={c.id}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                {c.type.replaceAll("_", " ")}
-              </CardTitle>
-              {getStatusIcon(c.status)}
-            </CardHeader>
+        {/* Clearance List */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {clearances.map((clearance) => (
+            <Card key={clearance.id}>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  {getStatusIcon(clearance.status)}
+                  {clearance.type.replaceAll("_", " ")}
+                </CardTitle>
 
-            <CardContent>
-              {getStatusBadge(c.status)}
+                {getStatusBadge(clearance.status)}
+              </CardHeader>
 
-              <div className="mt-3">
-                <Progress value={c.progress} />
-                <p className="text-xs text-gray-500 mt-1">
-                  {c.progress}% complete
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              <CardContent>
+                <div className="mt-4 flex justify-end">
+                  <ClearanceModal clearance={clearance} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

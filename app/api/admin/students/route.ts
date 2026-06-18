@@ -15,8 +15,39 @@ export async function POST(req: Request) {
       },
     });
 
+    await prisma.clearance.createMany({
+      data: [
+        {
+          studentId: student.id,
+          type: "FEE_CLEARANCE",
+        },
+        {
+          studentId: student.id,
+          type: "APPLICATION_LETTER",
+        },
+        {
+          studentId: student.id,
+          type: "STATEMENT_OF_RESULT",
+        },
+        {
+          studentId: student.id,
+          type: "SECURITY_CLEARANCE",
+        },
+        {
+          studentId: student.id,
+          type: "ACCOMMODATION_CLEARANCE",
+        },
+        {
+          studentId: student.id,
+          type: "LIBRARY_CLEARANCE",
+        },
+      ],
+    });
+
     return NextResponse.json(student);
   } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       { message: "Error creating student" },
       { status: 500 }
