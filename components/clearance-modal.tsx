@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 interface Clearance {
   id: string;
@@ -45,45 +46,47 @@ function getInstructions(type: string) {
   }
 }
 
-export default function ClearanceModal({
-  clearance,
-}: ClearanceModalProps) {
+export default function ClearanceModal({ clearance }: ClearanceModalProps) {
+    const [file, setFile] = useState<File | null>(null);
+
+async function handleUpload() {
+  if (!file) return;
+
+  const formData = new FormData();
+
+  formData.append("file", file);
+  formData.append("clearanceId", clearance.id);
+
+  const res = await fetch(
+    "/api/student/upload-document",
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const data = await res.json();
+
+  console.log(data);
+}
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button>
-          {clearance.status === "COMPLETED"
-            ? "View"
-            : "Start Clearance"}
+          {clearance.status === "COMPLETED" ? "View" : "Start Clearance"}
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {clearance.type.replaceAll("_", " ")}
-          </DialogTitle>
+          <DialogTitle>{clearance.type.replaceAll("_", " ")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div>
-            <p className="text-sm text-gray-500">
-              Status
-            </p>
+            <p className="text-sm text-gray-500">Instructions</p>
 
-            <p className="font-medium">
-              {clearance.status}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-sm text-gray-500">
-              Instructions
-            </p>
-
-            <p className="mt-1">
-              {getInstructions(clearance.type)}
-            </p>
+            <p className="mt-1">{getInstructions(clearance.type)}</p>
           </div>
 
           <div>
@@ -93,13 +96,15 @@ export default function ClearanceModal({
 
             <input
               type="file"
+              accept=".pdf,.png,.jpg,.jpeg"
               className="w-full border rounded-md p-2"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </div>
 
-          <Button className="w-full">
-            Submit Document
-          </Button>
+          <Button
+          onClick={handleUpload}
+          className="w-full">Submit Document</Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,0 +1,1 @@
+Future enhancement: API Integrations: Integrate directly with your school's payment gateways (e.g., Remita, Paystack) or university portal APIs to fetch financial clearance data automatically.
