@@ -51,16 +51,29 @@ export async function POST(req: Request) {
   where: {
     id: clearanceId,
   },
+  include: {
+    student: true,
+  },
 });
 
 if (!clearance) {
   throw new Error("Clearance not found");
 }
 
-const result = await verifyDocument(
-  clearance.type,
-  file
-);
+const result = await verifyDocument({
+  clearanceType: clearance.type,
+
+  expectedStudentName:
+    clearance.student.fullName,
+
+  expectedRegNo:
+    clearance.student.regNo,
+
+  expectedDepartment:
+    clearance.student.department,
+    
+  file,
+});
 
 const updatedDocument =
   await prisma.document.update({
