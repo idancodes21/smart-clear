@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 import streamifier from "streamifier";
+import { verifyDocument } from "@/lib/verify-document";
+
 
 export async function POST(req: Request) {
   try {
@@ -44,7 +46,55 @@ export async function POST(req: Request) {
       },
     });
 
-    return Response.json(document);
+    const clearance = await prisma.clearance.findUnique({
+  where: {
+    id: clearanceId,
+  },
+});
+
+if (!clearance) {
+  throw new Error("Clearance not found");
+}
+
+const result = await verifyDocument(
+  clearance.type,
+  file
+);
+
+const updatedDocument =
+  await prisma.document.update({
+    where: {
+      id: document.id,
+    },
+    data: {
+      extractedText: result.extractedText,
+      aiVerified: result.isValid,
+      aiScore: result.score,
+      aiComment: result.comment,
+    },
+  });
+
+  await prisma.clearance.update({
+  where: {
+    id: clearanceId,
+  },
+  data: {
+    status: result.isValid
+      ? "COMPLETED"
+      : "REJECTED",
+
+    progress: result.isValid
+      ? 100
+      : 0,
+  },
+});
+
+return Response.json({
+  success: true,
+  document: updatedDocument,
+  verification: result,
+});
+
   } catch (error) {
     console.error(error);
 

@@ -80,7 +80,7 @@ export default function StudentDashboard({ student, clearances }: Props) {
       case "IN_PROGRESS":
         return <Badge variant="secondary">In Progress</Badge>;
       case "REJECTED":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
       default:
         return <Badge variant="outline">Not Started</Badge>;
     }
@@ -161,7 +161,7 @@ export default function StudentDashboard({ student, clearances }: Props) {
                 {completed}/{total} Completed
               </Badge>
             </div>
-            <Progress className="h-3 mb-4" />
+            <Progress value={progress} className="h-3 mb-4" />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">{completed}</div>
