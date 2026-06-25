@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import cloudinary from "@/lib/cloudinary";
 import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
+import { handleApiError } from "@/lib/api-error";
 
 
 export async function POST(req: Request) {
@@ -98,9 +99,6 @@ return Response.json({
   } catch (error) {
     console.error(error);
 
-    return Response.json(
-      { error: "Upload failed" },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }
