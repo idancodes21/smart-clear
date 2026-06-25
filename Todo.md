@@ -1,6 +1,5 @@
-1. Add React Toast Animation
-2. Add a nice animation on scanning
-3. 
+1. Add a nice animation on scanning
+2. 
 
 
 

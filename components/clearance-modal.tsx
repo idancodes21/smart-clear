@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 
 interface Clearance {
   id: string;
@@ -74,7 +75,7 @@ export default function ClearanceModal({ clearance }: ClearanceModalProps) {
 
   async function handleUpload() {
     if (!file) {
-      alert("Please select a file.");
+      toast.warning("Please select a file.");
       return;
     }
 
@@ -121,7 +122,7 @@ export default function ClearanceModal({ clearance }: ClearanceModalProps) {
 
       setStatus("declined");
 
-      alert(error instanceof Error ? error.message : "Upload failed");
+      toast.error(error instanceof Error ? error.message : "Upload failed");
     }
   }
 

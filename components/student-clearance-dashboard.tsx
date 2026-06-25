@@ -102,8 +102,8 @@ export default function StudentDashboard({ student, clearances }: Props) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" className="bg-white">
-                <RefreshCw className={`h-4 w-4 mr-2}`} />
+               <Button onClick={refresh} variant="outline" size="sm" disabled={loading} className="bg-white">
+                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
               <LogoutButton />

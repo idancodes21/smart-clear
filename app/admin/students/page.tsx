@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function AdminStudentsPage() {
   const [form, setForm] = useState({
@@ -17,6 +18,10 @@ export default function AdminStudentsPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const loadingToast = toast.loading(
+  "Creating student..."
+);
+
   const handleSubmit = async () => {
     setLoading(true);
 
@@ -30,12 +35,15 @@ export default function AdminStudentsPage() {
       });
 
       if (!res.ok) {
+        toast.dismiss(loadingToast);
         const err = await res.json();
-        alert(err.message || "Failed to create student");
+
+        toast.error(err.message || "Failed to create student");
+
         return;
       }
 
-      alert("Student created successfully");
+      toast.success("Student created successfully");
 
       setForm({
         fullName: "",
@@ -46,7 +54,9 @@ export default function AdminStudentsPage() {
       });
     } catch (error) {
       console.error(error);
-      alert("Something went wrong");
+
+      toast.dismiss(loadingToast);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
