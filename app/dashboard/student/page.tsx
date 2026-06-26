@@ -14,5 +14,11 @@ export default async function Page() {
     where: { studentId: student.id },
   });
 
-  return <StudentDashboard student={student} clearances={clearances} />;
+  const certificate = await prisma.clearanceCertificate.findUnique({
+  where: {
+    studentId: student.id,
+  },
+});
+
+  return <StudentDashboard student={student} clearances={clearances}  certificate={certificate} />;
 }

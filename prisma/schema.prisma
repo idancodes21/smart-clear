@@ -48,6 +48,7 @@ model Student {
   level      String
 
   clearances Clearance[]
+  certificate ClearanceCertificate?
 
   createdAt DateTime @default(now())
 }
@@ -90,12 +91,28 @@ model ClearanceStep {
   clearance Clearance @relation(fields: [clearanceId], references: [id])
 }
 
+model ClearanceCertificate {
+  id String @id @default(cuid())
+
+  studentId String @unique
+
+  verificationCode String @unique
+
+  qrCodeUrl String?
+
+  issuedAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id])
+}
+
 model Document {
   id String @id @default(cuid())
 
   clearanceId String
   type        String
   fileUrl     String
+
+  detectedType String?
 
   extractedText String? @db.Text
 

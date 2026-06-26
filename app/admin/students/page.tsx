@@ -18,12 +18,12 @@ export default function AdminStudentsPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const loadingToast = toast.loading(
-  "Creating student..."
-);
-
   const handleSubmit = async () => {
     setLoading(true);
+
+     const loadingToast = toast.loading(
+  "Creating student..."
+);
 
     try {
       const res = await fetch("/api/admin/students", {

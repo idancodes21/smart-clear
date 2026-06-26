@@ -3,6 +3,7 @@ import cloudinary from "@/lib/cloudinary";
 import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
 import { handleApiError } from "@/lib/api-error";
+import { generateCertificate } from "@/lib/generate-certificate";
 
 
 export async function POST(req: Request) {
@@ -102,6 +103,22 @@ const updatedDocument =
       : 0,
   },
 });
+
+const studentClearances =
+  await prisma.clearance.findMany({
+    where: {
+      studentId: clearance.studentId,
+    },
+  });
+
+const allCompleted =
+  studentClearances.every(
+    (c) => c.status === "COMPLETED"
+  );
+
+if (allCompleted) {
+  await generateCertificate(clearance.studentId);
+}
 
 return Response.json({
   success: true,

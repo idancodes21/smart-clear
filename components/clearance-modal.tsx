@@ -170,16 +170,11 @@ export default function ClearanceModal({ clearance }: ClearanceModalProps) {
         <div className="space-y-4">
           <div>
             <p className="text-sm text-gray-500">Instructions</p>
-
             <p className="mt-1">{getInstructions(clearance.type)}</p>
           </div>
 
           {clearance.status !== "COMPLETED" && (
             <div>
-              <label className="block mb-2 text-sm font-medium">
-                Upload Document
-              </label>
-
               <input
                 type="file"
                 accept=".pdf,.png,.jpg,.jpeg"
