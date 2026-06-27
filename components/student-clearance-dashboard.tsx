@@ -17,8 +17,6 @@ import { LogoutButton } from "./LogoutButton";
 import ClearanceModal from "@/components/clearance-modal";
 import Image from "next/image";
 
-
-
 interface Student {
   id: string;
   fullName: string;
@@ -44,7 +42,7 @@ interface Clearance {
 interface Props {
   student: Student;
   clearances: Clearance[];
-   certificate: Certificate | null;
+  certificate: Certificate | null;
 }
 
 interface Certificate {
@@ -52,10 +50,11 @@ interface Certificate {
   verificationCode: string;
 }
 
-
-
-
-export default function StudentDashboard({ student, clearances, certificate, }: Props) {
+export default function StudentDashboard({
+  student,
+  clearances,
+  certificate,
+}: Props) {
   const [loading, setLoading] = useState(false);
 
   const completed = clearances.filter(
@@ -76,6 +75,8 @@ export default function StudentDashboard({ student, clearances, certificate, }: 
     await new Promise((r) => setTimeout(r, 800));
     setLoading(false);
   };
+
+
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -100,7 +101,6 @@ export default function StudentDashboard({ student, clearances, certificate, }: 
         return <Badge variant="outline">Not Started</Badge>;
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -170,8 +170,23 @@ export default function StudentDashboard({ student, clearances, certificate, }: 
                   <p className="text-sm text-gray-600">Email</p>
                   <p className="font-medium text-sm">{student.email}</p>
                 </div>
+                 <div>
+                  <p className="text-sm text-gray-600">Phone Number</p>
+                  <p className="font-medium text-sm">09162609575</p>
+                </div>
               </div>
-              <div className="space-y-3"></div>
+              <div className="space-y-3">
+                 <div>
+                  <p className="text-sm text-gray-600">State of Origin</p>
+                  <p className="font-medium text-sm">Enugu State</p>
+                </div>
+                 <div>
+                  <p className="text-sm text-gray-600">Programme</p>
+                  <p className="font-medium text-sm">B.SC</p>
+                </div>
+                 <div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -236,58 +251,54 @@ export default function StudentDashboard({ student, clearances, certificate, }: 
         </div>
 
         {/* QR Code and Verification Number */}
-       {/* Clearance Certificate */}
+        {/* Clearance Certificate */}
 
-<div className="flex justify-center items-center mt-10">
-  <Button
-    disabled={!certificateReady}
-    onClick={() => setShowQR((prev) => !prev)}
-    variant={certificateReady ? "default" : "outline"}
-    size="lg"
-    className={
-      certificateReady
-        ? ""
-        : "cursor-not-allowed opacity-60"
-    }
-  >
-    {!certificateReady
-      ? "Complete All Clearances"
-      : showQR
-      ? "Hide QR Code"
-      : "Show QR Code"}
-  </Button>
-</div>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-10">
+         
 
-{/* ADD THE QR CARD HERE */}
+          <Button
+            disabled={!certificateReady}
+            onClick={() => setShowQR((prev) => !prev)}
+            variant={certificateReady ? "default" : "outline"}
+            size="lg"
+            className={certificateReady ? "" : "cursor-not-allowed opacity-60"}
+          >
+            {!certificateReady
+              ? "Complete All Clearances"
+              : showQR
+                ? "Hide QR Code"
+                : "Show QR Code"}
+          </Button>
+        </div>
 
-{certificateReady && showQR && certificate && (
-  <div className="mt-8 flex justify-center">
-    <div className="w-full max-w-sm rounded-xl border bg-white p-6 shadow-md">
+        {/* ADD THE QR CARD HERE */}
 
-      <div className="flex justify-center">
-       {certificate.qrCodeUrl && (
-  <Image
-    src={certificate.qrCodeUrl}
-    alt="Verification QR Code"
-    width={220}
-    height={220}
-  />
-)}
-      </div>
+        {certificateReady && showQR && certificate && (
+          <div className="mt-8 flex justify-center">
+            <div className="w-full max-w-sm rounded-xl border bg-white p-6 shadow-md">
+              <div className="flex justify-center">
+                {certificate.qrCodeUrl && (
+                  <Image
+                    src={certificate.qrCodeUrl}
+                    alt="Verification QR Code"
+                    width={220}
+                    height={220}
+                  />
+                )}
+              </div>
 
-      <div className="mt-6 border-t pt-4 text-center">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">
-          Verification Code
-        </p>
+              <div className="mt-6 border-t pt-4 text-center">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Verification Code
+                </p>
 
-        <p className="mt-2 rounded-md bg-muted px-4 py-2 font-mono text-lg font-bold tracking-widest">
-          {certificate.verificationCode}
-        </p>
-      </div>
-
-    </div>
-  </div>
-)}
+                <p className="mt-2 rounded-md bg-muted px-4 py-2 font-mono text-lg font-bold tracking-widest">
+                  {certificate.verificationCode}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
