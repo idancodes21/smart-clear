@@ -10,6 +10,9 @@ export default function AdminStudentsPage() {
     department: "",
     level: "",
     email: "",
+    phoneNumber: "",
+    stateOfOrigin: "",
+    programme: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -21,9 +24,7 @@ export default function AdminStudentsPage() {
   const handleSubmit = async () => {
     setLoading(true);
 
-     const loadingToast = toast.loading(
-  "Creating student..."
-);
+    const loadingToast = toast.loading("Creating student...");
 
     try {
       const res = await fetch("/api/admin/students", {
@@ -51,6 +52,9 @@ export default function AdminStudentsPage() {
         department: "",
         level: "",
         email: "",
+        phoneNumber: "",
+        stateOfOrigin: "",
+        programme: "",
       });
     } catch (error) {
       console.error(error);
@@ -102,6 +106,27 @@ export default function AdminStudentsPage() {
         name="email"
         placeholder="Email"
         value={form.email}
+        onChange={handleChange}
+        className="border p-2 w-full"
+      />
+      <input
+        name="phoneNumber"
+        placeholder="Phone Number"
+        value={form.phoneNumber}
+        onChange={handleChange}
+        className="border p-2 w-full"
+      />
+      <input
+        name="stateOfOrigin"
+        placeholder="State of Origin"
+        value={form.stateOfOrigin}
+        onChange={handleChange}
+        className="border p-2 w-full"
+      />
+      <input
+      name="programme"
+        placeholder="Programme"
+        value={form.programme}
         onChange={handleChange}
         className="border p-2 w-full"
       />

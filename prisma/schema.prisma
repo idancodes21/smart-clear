@@ -46,6 +46,9 @@ model Student {
   email      String?
   department String
   level      String
+  phoneNumber String?
+  programme   String?
+  stateOfOrigin String?
 
   clearances Clearance[]
   certificate ClearanceCertificate?

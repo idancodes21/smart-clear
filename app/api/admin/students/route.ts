@@ -12,6 +12,9 @@ export async function POST(req: Request) {
         department: body.department,
         level: body.level,
         email: body.email,
+        phoneNumber: body.phoneNumber,
+        stateOfOrigin: body.stateOfOrigin,
+        programme: body.programme
       },
     });
 

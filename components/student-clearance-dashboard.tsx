@@ -24,6 +24,9 @@ interface Student {
   email: string | null;
   department: string;
   level: string;
+  phoneNumber: string;
+  stateOfOrigin: string;
+  programme: string;
 }
 
 interface Clearance {
@@ -172,17 +175,17 @@ export default function StudentDashboard({
                 </div>
                  <div>
                   <p className="text-sm text-gray-600">Phone Number</p>
-                  <p className="font-medium text-sm">09162609575</p>
+                  <p className="font-medium text-sm">{student.phoneNumber}</p>
                 </div>
               </div>
               <div className="space-y-3">
                  <div>
                   <p className="text-sm text-gray-600">State of Origin</p>
-                  <p className="font-medium text-sm">Enugu State</p>
+                  <p className="font-medium text-sm">{student.stateOfOrigin}</p>
                 </div>
                  <div>
                   <p className="text-sm text-gray-600">Programme</p>
-                  <p className="font-medium text-sm">B.SC</p>
+                  <p className="font-medium text-sm">{student.programme}</p>
                 </div>
                  <div>
                 </div>
