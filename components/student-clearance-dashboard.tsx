@@ -24,9 +24,9 @@ interface Student {
   email: string | null;
   department: string;
   level: string;
-  phoneNumber: string;
-  stateOfOrigin: string;
-  programme: string;
+  phoneNumber: string | null;
+  stateOfOrigin: string | null;
+  programme: string | null;
 }
 
 interface Clearance {

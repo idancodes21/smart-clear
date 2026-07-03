@@ -8,26 +8,16 @@ import { Label } from "@/components/ui/label";
 import {
   FileText,
   Users,
-  CheckCircle,
   Clock,
-  Camera,
   Download,
+  QrCodeIcon,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 
 export default function HomePage() {
   const [studentToken, setStudentToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
-
-  const stats = {
-    totalStudents: 1247,
-    completedClearances: 892,
-    pendingApprovals: 355,
-    activeDepartments: 5,
-  };
 
   // Student log in
   const handleStudentAccess = async () => {
@@ -119,41 +109,6 @@ export default function HomePage() {
               approval suggestions.
             </p>
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            <div className="bg-card border border-border rounded-lg p-5 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                {stats.totalStudents}
-              </div>
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Total Students
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                {stats.completedClearances}
-              </div>
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Completed
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                {stats.pendingApprovals}
-              </div>
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Pending
-              </div>
-            </div>
-            <div className="bg-card border border-border rounded-lg p-5 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-primary mb-1">
-                {stats.activeDepartments}
-              </div>
-              <div className="text-xs md:text-sm text-muted-foreground">
-                Departments
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="flex justify-center gap-5 mb-16">
@@ -205,13 +160,13 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-4xl mx-auto">
           <div className="text-center">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="h-6 w-6 text-primary" />
+              <QrCodeIcon className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              Digital Signatures
+              QR Code 
             </h3>
             <p className="text-sm text-muted-foreground">
-              Secure e-signatures with full audit trail
+              Scan QR Code to Access Certificate 
             </p>
           </div>
           <div className="text-center">
@@ -222,7 +177,7 @@ export default function HomePage() {
               PDF Documents
             </h3>
             <p className="text-sm text-muted-foreground">
-              Download official clearance documents
+              Download official clearance Certificate
             </p>
           </div>
           <div className="text-center">
@@ -264,7 +219,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="text-center mt-4">
-              <p className="text-xs text-muted-foreground">
+              <p suppressHydrationWarning className="text-xs text-muted-foreground">
                 Last updated: {new Date().toLocaleString()}
               </p>
             </div>
