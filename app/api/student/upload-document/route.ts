@@ -4,6 +4,7 @@ import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
 import { handleApiError } from "@/lib/api-error";
 import { generateCertificate } from "@/lib/generate-certificate";
+import type { Clearance } from "@prisma/client";
 
 
 export async function POST(req: Request) {
@@ -104,7 +105,7 @@ const updatedDocument =
   },
 });
 
-const studentClearances =
+const studentClearances: Clearance[] =
   await prisma.clearance.findMany({
     where: {
       studentId: clearance.studentId,
