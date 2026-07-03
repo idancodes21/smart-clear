@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
+import { 
   Table,
   TableBody,
   TableCell,
@@ -40,6 +40,7 @@ import {
   Edit,
 } from "lucide-react";
 import EnrollStudent from "./enroll-student";
+import AdminDashboardSkeleton from "./admin-dashboard-skeleton";
 
 interface Student {
   id: string;
@@ -136,6 +137,10 @@ const fetchDashboard = async () => {
 
     fetchDashboard();
   }, []);
+
+  if (loading) {
+  return <AdminDashboardSkeleton />;
+}
 
   return (
     <div className="container mx-auto px-4 py-8">

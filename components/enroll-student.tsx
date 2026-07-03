@@ -128,7 +128,7 @@ export default function EnrollStudent({
           <Input
             id="programme"
             name="programme"
-            placeholder="B.Sc Computer Science"
+            placeholder="B.Sc"
             value={form.programme}
             onChange={handleChange}
           />
