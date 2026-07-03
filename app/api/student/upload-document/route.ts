@@ -111,10 +111,10 @@ const studentClearances =
     },
   });
 
-const allCompleted =
-  studentClearances.every(
-    (c) => c.status === "COMPLETED"
-  );
+const allCompleted = studentClearances.every(
+  (c: { status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED" }) =>
+    c.status === "COMPLETED"
+);
 
 if (allCompleted) {
   await generateCertificate(clearance.studentId);
