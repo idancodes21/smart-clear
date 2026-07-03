@@ -4,7 +4,6 @@ import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
 import { handleApiError } from "@/lib/api-error";
 import { generateCertificate } from "@/lib/generate-certificate";
-import type { Clearance } from "@prisma/client";
 
 
 export async function POST(req: Request) {
@@ -105,17 +104,17 @@ const updatedDocument =
   },
 });
 
-const studentClearances: Clearance[] =
+const studentClearances =
   await prisma.clearance.findMany({
     where: {
       studentId: clearance.studentId,
     },
   });
 
-const allCompleted =
-  studentClearances.every(
-    (c) => c.status === "COMPLETED"
-  );
+const allCompleted = studentClearances.every(
+  (c: { status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED" }) =>
+    c.status === "COMPLETED"
+);
 
 if (allCompleted) {
   await generateCertificate(clearance.studentId);
