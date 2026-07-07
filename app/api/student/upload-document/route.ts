@@ -4,7 +4,7 @@ import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
 import { handleApiError } from "@/lib/api-error";
 import { generateCertificate } from "@/lib/generate-certificate";
-
+import type { UploadApiResponse } from "cloudinary";
 
 export async function POST(req: Request) {
   try {
@@ -16,14 +16,14 @@ export async function POST(req: Request) {
     if (!file || !clearanceId) {
       return Response.json(
         { error: "Missing file or clearanceId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const uploadResult = await new Promise<any>(
+    const uploadResult = await new Promise<UploadApiResponse>(
       (resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -31,13 +31,22 @@ export async function POST(req: Request) {
             folder: "smart-clear",
           },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
+            if (error) {
+              reject(error);
+              return;
+            }
+
+            if (!result) {
+              reject(new Error("Cloudinary upload failed."));
+              return;
+            }
+
+            resolve(result);
+          },
         );
 
         streamifier.createReadStream(buffer).pipe(uploadStream);
-      }
+      },
     );
 
     const document = await prisma.document.create({
@@ -49,83 +58,74 @@ export async function POST(req: Request) {
     });
 
     const clearance = await prisma.clearance.findUnique({
-  where: {
-    id: clearanceId,
-  },
-  include: {
-    student: true,
-  },
-});
+      where: {
+        id: clearanceId,
+      },
+      include: {
+        student: true,
+      },
+    });
 
-if (!clearance) {
-  throw new Error("Clearance not found");
-}
+    if (!clearance) {
+      throw new Error("Clearance not found");
+    }
 
-const result = await verifyDocument({
-  clearanceType: clearance.type,
+    const result = await verifyDocument({
+      clearanceType: clearance.type,
 
-  expectedStudentName:
-    clearance.student.fullName,
+      expectedStudentName: clearance.student.fullName,
 
-  expectedRegNo:
-    clearance.student.regNo,
+      expectedRegNo: clearance.student.regNo,
 
-  expectedDepartment:
-    clearance.student.department,
-    
-  file,
-});
+      expectedDepartment: clearance.student.department,
 
-const updatedDocument =
-  await prisma.document.update({
-    where: {
-      id: document.id,
-    },
-    data: {
-      extractedText: result.extractedText,
-      aiVerified: result.isValid,
-      aiScore: result.score,
-      aiComment: result.comment,
-    },
-  });
+      file,
+    });
 
-  await prisma.clearance.update({
-  where: {
-    id: clearanceId,
-  },
-  data: {
-    status: result.isValid
-      ? "COMPLETED"
-      : "REJECTED",
+    const updatedDocument = await prisma.document.update({
+      where: {
+        id: document.id,
+      },
+      data: {
+        extractedText: result.extractedText,
+        aiVerified: result.isValid,
+        aiScore: result.score,
+        aiComment: result.comment,
+      },
+    });
 
-    progress: result.isValid
-      ? 100
-      : 0,
-  },
-});
+    await prisma.clearance.update({
+      where: {
+        id: clearanceId,
+      },
+      data: {
+        status: result.isValid ? "COMPLETED" : "REJECTED",
 
-const studentClearances =
-  await prisma.clearance.findMany({
-    where: {
-      studentId: clearance.studentId,
-    },
-  });
+        progress: result.isValid ? 100 : 0,
+      },
+    });
 
-const allCompleted = studentClearances.every(
-  (c: { status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED" }) =>
-    c.status === "COMPLETED"
-);
+    const studentClearances = await prisma.clearance.findMany({
+      where: {
+        studentId: clearance.studentId,
+      },
+    });
 
-if (allCompleted) {
-  await generateCertificate(clearance.studentId);
-}
+    const allCompleted = studentClearances.every(
+      (c: {
+        status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
+      }) => c.status === "COMPLETED",
+    );
 
-return Response.json({
-  success: true,
-  document: updatedDocument,
-  verification: result,
-});
+    if (allCompleted) {
+      await generateCertificate(clearance.studentId);
+    }
 
+    return Response.json({
+      success: true,
+      document: updatedDocument,
+      verification: result,
+    });
   } catch (error) {
     console.error(error);
 

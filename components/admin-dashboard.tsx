@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -70,23 +69,6 @@ export function AdminDashboard() {
     rejectedClearances: 0,
     certificatesGenerated: 0,
   });
-
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return <Badge className="bg-green-100 text-green-700">Completed</Badge>;
-
-      case "PENDING":
-        return <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>;
-
-      case "REJECTED":
-        return <Badge variant="destructive">Rejected</Badge>;
-
-      default:
-        return <Badge>Unknown</Badge>;
-    }
-  };
 
 
 const fetchDashboard = async () => {
