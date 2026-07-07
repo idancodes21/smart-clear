@@ -1,8 +1,15 @@
-import { AdminDashboard } from '@/components/admin-dashboard'
-import React from 'react'
+import { redirect } from "next/navigation";
+import { getAdminSession } from "@/lib/get-admin-session";
+import { AdminDashboard } from "@/components/admin-dashboard";
 
-const page = () => {
-  return  <AdminDashboard />
+export default async function AdminPage() {
+  const admin = await getAdminSession();
+
+  if (!admin) {
+    redirect("/admin/login");
+  }
+
+  return (
+    <AdminDashboard />
+  );
 }
-
-export default page
