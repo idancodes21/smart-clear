@@ -16,7 +16,7 @@ export async function generateCertificate(studentId: string) {
     crypto.randomBytes(4).toString("hex").toUpperCase();
 
   const verifyUrl =
-    `${process.env.NEXT_PUBLIC_APP_URL}/verify/${verificationCode}`;
+    `${process.env.APP_URL}/verify/${verificationCode}`;
 
   const qrCode = await QRCode.toDataURL(verifyUrl);
 

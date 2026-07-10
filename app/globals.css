@@ -125,3 +125,24 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes aiScan {
+  0% {
+    top: -25%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.animate-ai-scan {
+  animation: aiScan 2.2s ease-in-out infinite;
+}

@@ -4,7 +4,7 @@ import { generateCertificate } from "@/lib/generate-certificate";
 export async function POST() {
   const student = await prisma.student.findFirst({
     where: {
-      regNo: "2022/249751",
+      regNo: "2022/287763",
     },
   });
 
