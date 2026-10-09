@@ -11,6 +11,12 @@ enum Role {
   OFFICER
 }
 
+enum OfficerDecision {
+  APPROVED
+  REJECTED
+  PENDING
+}
+
 enum ClearanceType {
   FEE_CLEARANCE
   APPLICATION_LETTER
@@ -40,17 +46,17 @@ enum DocumentStatus {
 }
 
 model Student {
-  id         String  @id @default(cuid())
-  fullName   String
-  regNo      String  @unique
-  email      String?
-  department String
-  level      String
-  phoneNumber String?
-  programme   String?
+  id            String  @id @default(cuid())
+  fullName      String
+  regNo         String  @unique
+  email         String?
+  department    String
+  level         String
+  phoneNumber   String?
+  programme     String?
   stateOfOrigin String?
 
-  clearances Clearance[]
+  clearances  Clearance[]
   certificate ClearanceCertificate?
 
   createdAt DateTime @default(now())
@@ -124,6 +130,10 @@ model Document {
   aiVerified Boolean @default(false)
   aiScore    Float?
   aiComment  String?
+
+  officerDecision OfficerDecision?
+  officerComment  String?
+  reviewedAt      DateTime?
 
   uploadedAt DateTime @default(now())
 
