@@ -29,6 +29,7 @@ interface Student {
   programme: string | null;
 }
 
+
 interface Clearance {
   id: string;
   type:
@@ -38,7 +39,12 @@ interface Clearance {
     | "SECURITY_CLEARANCE"
     | "ACCOMMODATION_CLEARANCE"
     | "LIBRARY_CLEARANCE";
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "REJECTED";
+  status:
+    | "NOT_STARTED"
+    | "IN_PROGRESS"
+    | "PENDING_REVIEW"
+    | "COMPLETED"
+    | "REJECTED";
   progress: number;
 }
 
@@ -65,7 +71,11 @@ export default function StudentDashboard({
   ).length;
   const total = clearances.length;
   const progress = total ? (completed / total) * 100 : 0;
-  const pending = clearances.filter((c) => c.status === "IN_PROGRESS").length;
+  const pending = clearances.filter(
+  (c) =>
+    c.status === "IN_PROGRESS" ||
+    c.status === "PENDING_REVIEW",
+).length;
   const rejected = clearances.filter(
     (clearance) => clearance.status === "REJECTED",
   ).length;
@@ -92,18 +102,37 @@ export default function StudentDashboard({
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case "IN_PROGRESS":
-        return <Badge variant="secondary">In Progress</Badge>;
-      case "REJECTED":
-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
-      default:
-        return <Badge variant="outline">Not Started</Badge>;
-    }
-  };
+  
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case "COMPLETED":
+      return (
+        <Badge className="bg-green-100 text-green-800">
+          Completed
+        </Badge>
+      );
+
+    case "IN_PROGRESS":
+      return <Badge variant="secondary">In Progress</Badge>;
+
+    case "PENDING_REVIEW":
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800">
+          Pending Review
+        </Badge>
+      );
+
+    case "REJECTED":
+      return (
+        <Badge className="bg-red-100 text-red-800">
+          Rejected
+        </Badge>
+      );
+
+    default:
+      return <Badge variant="outline">Not Started</Badge>;
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">
