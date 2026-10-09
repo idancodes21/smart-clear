@@ -1,26 +1,52 @@
-
 "use client";
 
-import { Eye } from "lucide-react";
-import type { ReviewDocument } from "./types";
-import { formatDate, formatLabel } from "./types";
+import { useState } from "react";
+import { Eye, CheckCircle2, XCircle, LoaderCircle } from "lucide-react";
+import type { ReviewDocument, ReviewStatus } from "./types";
+import { formatDate, formatLabel, getReviewStatus } from "./types";
 
 type DocumentReviewDialogProps = {
   document: ReviewDocument;
   onClose: () => void;
+  onDecision: (
+    documentId: string,
+    decision: Extract<ReviewStatus, "APPROVED" | "REJECTED">,
+    comment: string,
+  ) => Promise<void>;
 };
 
 export function DocumentReviewDialog({
   document,
   onClose,
+  onDecision,
 }: DocumentReviewDialogProps) {
   const student = document.clearance.student;
+  const status = getReviewStatus(document);
+
+  const [comment, setComment] = useState(document.officerComment ?? "");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleDecision(
+    decision: Extract<ReviewStatus, "APPROVED" | "REJECTED">,
+  ) {
+    setError("");
+    setIsSubmitting(true);
+
+    try {
+      await onDecision(document.id, decision, comment.trim());
+    } catch {
+      setError("Failed to save the decision. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
+        if (event.target === event.currentTarget && !isSubmitting) onClose();
       }}
     >
       <section
@@ -48,8 +74,9 @@ export function DocumentReviewDialog({
           <button
             type="button"
             onClick={onClose}
+            disabled={isSubmitting}
             aria-label="Close review details"
-            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
           >
             Close
           </button>
@@ -87,8 +114,8 @@ export function DocumentReviewDialog({
                 }`}
               >
                 {document.aiVerified
-                  ? "AI verification passed"
-                  : "AI verification needs review"}
+                  ? "Verification checks passed"
+                  : "Verification checks failed"}
               </span>
 
               <span className="text-sm text-gray-600">
@@ -129,6 +156,66 @@ export function DocumentReviewDialog({
             <div className="mt-2 max-h-48 overflow-y-auto rounded-lg bg-gray-50 p-4 text-sm leading-6 text-gray-600">
               {document.extractedText ||
                 "No text was extracted from this document."}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="font-semibold text-gray-900">
+                Officer decision
+              </h3>
+              <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                Current status: {formatLabel(status)}
+              </span>
+            </div>
+
+            <label
+              htmlFor="officer-comment"
+              className="mt-4 block text-sm font-medium text-gray-700"
+            >
+              Review comment
+            </label>
+            <textarea
+              id="officer-comment"
+              value={comment}
+              onChange={(event) => setComment(event.target.value)}
+              rows={3}
+              maxLength={2000}
+              placeholder="Add a reason or comment for your decision..."
+              disabled={isSubmitting}
+              className="mt-2 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-gray-50"
+            />
+
+            {error && (
+              <p role="alert" className="mt-3 text-sm text-red-600">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => handleDecision("APPROVED")}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 rounded-lg bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                Approve document
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDecision("REJECTED")}
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <XCircle className="h-4 w-4" />
+                Reject document
+              </button>
             </div>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Eye, FileText } from "lucide-react";
@@ -35,14 +34,15 @@ export function ReviewsTable({ documents, onView }: ReviewsTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[950px] text-left text-sm">
+      <table className="w-full min-w-[1050px] text-left text-sm">
         <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
           <tr>
             <th className="px-5 py-3.5 font-medium">Student</th>
             <th className="px-5 py-3.5 font-medium">Clearance</th>
             <th className="px-5 py-3.5 font-medium">AI result</th>
+            <th className="px-5 py-3.5 font-medium">AI score</th>
             <th className="px-5 py-3.5 font-medium">Submitted</th>
-            <th className="px-5 py-3.5 font-medium">Status</th>
+            <th className="px-5 py-3.5 font-medium">Decision</th>
             <th className="px-5 py-3.5 text-right font-medium">Action</th>
           </tr>
         </thead>
@@ -85,10 +85,14 @@ export function ReviewsTable({ documents, onView }: ReviewsTableProps) {
                         : "bg-amber-100 text-amber-800"
                     }`}
                   >
-                    {document.aiVerified ? "Passed" : "Needs review"}
-                    {document.aiScore !== null &&
-                      ` · ${Math.round(document.aiScore)}%`}
+                    {document.aiVerified ? "Checks passed" : "Checks failed"}
                   </span>
+                </td>
+
+                <td className="whitespace-nowrap px-5 py-4 text-gray-600">
+                  {document.aiScore !== null
+                    ? `${Math.round(document.aiScore)}%`
+                    : "—"}
                 </td>
 
                 <td className="whitespace-nowrap px-5 py-4 text-gray-600">
@@ -101,6 +105,12 @@ export function ReviewsTable({ documents, onView }: ReviewsTableProps) {
                   >
                     {formatLabel(status)}
                   </span>
+                  {document.officerDecision &&
+                    document.officerDecision !== "PENDING" && (
+                      <p className="mt-1 text-xs text-gray-500">
+                        Officer decision
+                      </p>
+                    )}
                 </td>
 
                 <td className="px-5 py-4 text-right">

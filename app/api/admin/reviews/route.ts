@@ -3,45 +3,43 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const documents = await prisma.document.findMany({
-      where: {
-        OR: [{ officerDecision: "PENDING" }, { officerDecision: null }],
-      },
-      include: {
-        clearance: {
+    const [documents, pendingCount, approvedCount, rejectedCount, totalCount] =
+      await Promise.all([
+        prisma.document.findMany({
           include: {
-            student: {
-              select: {
-                id: true,
-                fullName: true,
-                regNo: true,
-                email: true,
-                department: true,
-                level: true,
-                programme: true,
+            clearance: {
+              include: {
+                student: {
+                  select: {
+                    id: true,
+                    fullName: true,
+                    regNo: true,
+                    email: true,
+                    department: true,
+                    level: true,
+                    programme: true,
+                  },
+                },
               },
             },
           },
-        },
-      },
-      orderBy: {
-        uploadedAt: "asc",
-      },
-    });
-
-    const [pendingCount, approvedCount, rejectedCount, totalCount] =
-      await Promise.all([
-        prisma.document.count({
-          where: {
-            OR: [{ officerDecision: "PENDING" }, { officerDecision: null }],
+          orderBy: {
+            uploadedAt: "desc",
           },
         }),
+
         prisma.document.count({
-          where: { officerDecision: "APPROVED" },
+          where: { status: "PENDING" },
         }),
+
         prisma.document.count({
-          where: { officerDecision: "REJECTED" },
+          where: { status: "APPROVED" },
         }),
+
+        prisma.document.count({
+          where: { status: "REJECTED" },
+        }),
+
         prisma.document.count(),
       ]);
 

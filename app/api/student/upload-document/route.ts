@@ -6,105 +6,124 @@ import { handleApiError } from "@/lib/api-error";
 import type { UploadApiResponse } from "cloudinary";
 
 export async function POST(req: Request) {
-try {
-const formData = await req.formData();
+  try {
+    const formData = await req.formData();
 
-const fileEntry = formData.get("file");
-const clearanceId = formData.get("clearanceId");
+    const fileEntry = formData.get("file");
+    const clearanceId = formData.get("clearanceId");
 
-if (
-  !(fileEntry instanceof File) ||
-  typeof clearanceId !== "string" ||
-  !clearanceId
-) {
-  return Response.json(
-    { error: "Missing file or clearanceId" },
-    { status: 400 },
-  );
-}
+    if (
+      !(fileEntry instanceof File) ||
+      typeof clearanceId !== "string" ||
+      !clearanceId
+    ) {
+      return Response.json(
+        { error: "Missing file or clearanceId" },
+        { status: 400 },
+      );
+    }
 
-const file = fileEntry;
+    const file = fileEntry;
 
-const clearance = await prisma.clearance.findUnique({
-  where: { id: clearanceId },
-  include: { student: true },
-});
+    const clearance = await prisma.clearance.findUnique({
+      where: { id: clearanceId },
+      include: { student: true },
+    });
 
-if (!clearance) {
-  return Response.json(
-    { error: "Clearance not found" },
-    { status: 404 },
-  );
-}
+    if (!clearance) {
+      return Response.json({ error: "Clearance not found" }, { status: 404 });
+    }
 
-const bytes = await file.arrayBuffer();
-const buffer = Buffer.from(bytes);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-const uploadResult = await new Promise<UploadApiResponse>(
-  (resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        resource_type: "auto",
-        folder: "smart-clear",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+    const uploadResult = await new Promise<UploadApiResponse>(
+      (resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            resource_type: "auto",
+            folder: "smart-clear",
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+              return;
+            }
 
-        if (!result) {
-          reject(new Error("Cloudinary upload failed."));
-          return;
-        }
+            if (!result) {
+              reject(new Error("Cloudinary upload failed."));
+              return;
+            }
 
-        resolve(result);
+            resolve(result);
+          },
+        );
+
+        streamifier.createReadStream(buffer).pipe(uploadStream);
       },
     );
 
-    streamifier.createReadStream(buffer).pipe(uploadStream);
-  },
-);
+    const result = await verifyDocument({
+      clearanceType: clearance.type,
+      expectedStudentName: clearance.student.fullName,
+      expectedRegNo: clearance.student.regNo,
+      expectedDepartment: clearance.student.department,
+      file,
+    });
 
-const result = await verifyDocument({
-  clearanceType: clearance.type,
-  expectedStudentName: clearance.student.fullName,
-  expectedRegNo: clearance.student.regNo,
-  expectedDepartment: clearance.student.department,
-  file,
-});
+    const decision =
+      result.score < 50
+        ? "REJECTED"
+        : result.score > 85
+          ? "APPROVED"
+          : "PENDING";
 
-const document = await prisma.document.create({
-  data: {
-    clearanceId,
-    type: file.type,
-    fileUrl: uploadResult.secure_url,
-    extractedText: result.extractedText,
-    aiVerified: result.isValid,
-    aiScore: result.score,
-    aiComment: result.comment,
-    officerDecision: "PENDING",
-  },
-});
+    const document = await prisma.document.create({
+      data: {
+        clearanceId,
+        type: file.type,
+        fileUrl: uploadResult.secure_url,
+        extractedText: result.extractedText,
+        aiVerified:
+          result.nameMatches &&
+          result.registrationNumberMatches &&
+          result.departmentMatches &&
+          result.appearsAuthentic &&
+          result.documentReadable,
+        aiScore: result.score,
+        aiComment: result.comment,
+        status: decision,
+        officerDecision: decision === "PENDING" ? "PENDING" : null,
+      },
+    });
 
-await prisma.clearance.update({
-  where: { id: clearanceId },
-  data: {
-    status: "PENDING_REVIEW",
-    progress: 0,
-  },
-});
+    await prisma.clearance.update({
+      where: { id: clearanceId },
+      data: {
+        status:
+          decision === "REJECTED"
+            ? "REJECTED"
+            : decision === "PENDING"
+              ? "PENDING_REVIEW"
+              : "IN_PROGRESS",
+      },
+    });
 
-return Response.json({
-  success: true,
-  message: "Document verified by AI and submitted for officer review.",
-  document,
-  verification: result,
-  officerReviewRequired: true,
-});
-
-} catch (error) {
-console.error(error);
-return handleApiError(error);
-}
+    return Response.json({
+      success: true,
+      message:
+        decision === "APPROVED"
+          ? "Document automatically approved."
+          : decision === "REJECTED"
+            ? "Document automatically rejected."
+            : "Document submitted for officer review.",
+      document,
+      verification: result,
+      decision,
+      officerReviewRequired: decision === "PENDING",
+    });
+  } catch (error) {
+    console.error(error);
+    return handleApiError(error);
+  }
 }

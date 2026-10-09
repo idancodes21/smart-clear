@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,6 +14,9 @@ import type {
   ReviewDocument,
   ReviewResponse,
   ReviewStatus,
+} from "@/components/admin/types";
+import {
+  getReviewStatus,
 } from "@/components/admin/types";
 import { ReviewStatCard } from "@/components/admin/review-stat-card";
 import { ReviewsTable } from "@/components/admin/reviews-table";
@@ -44,6 +46,15 @@ export default function ClearanceReviewsPage() {
 
       const result = (await response.json()) as ReviewResponse;
       setData(result);
+
+      // Keep the open dialog in sync with the refreshed document.
+      setSelectedDocument((current) => {
+        if (!current) return null;
+
+        return (
+          result.documents.find((item) => item.id === current.id) ?? null
+        );
+      });
     } catch (err) {
       setError(
         err instanceof Error
@@ -58,6 +69,39 @@ export default function ClearanceReviewsPage() {
   useEffect(() => {
     void fetchReviews();
   }, [fetchReviews]);
+
+  const handleDecision = useCallback(
+    async (
+      documentId: string,
+      decision: Extract<ReviewStatus, "APPROVED" | "REJECTED">,
+      comment: string,
+    ) => {
+      const response = await fetch(
+        `/api/admin/reviews/${documentId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ decision, comment }),
+        },
+      );
+
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as
+          | { message?: string }
+          | null;
+
+        throw new Error(
+          result?.message ?? "Failed to save the officer decision.",
+        );
+      }
+
+      await fetchReviews();
+      setSelectedDocument(null);
+    },
+    [fetchReviews],
+  );
 
   const filteredDocuments = useMemo(() => {
     if (!data) return [];
@@ -74,8 +118,7 @@ export default function ClearanceReviewsPage() {
 
       const matchesStatus =
         statusFilter === "ALL" ||
-        (document.officerDecision ?? "PENDING") ===
-          (statusFilter as ReviewStatus);
+        getReviewStatus(document) === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -213,6 +256,7 @@ export default function ClearanceReviewsPage() {
         <DocumentReviewDialog
           document={selectedDocument}
           onClose={() => setSelectedDocument(null)}
+          onDecision={handleDecision}
         />
       )}
     </div>
