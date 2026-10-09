@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Eye } from "lucide-react";
@@ -22,31 +23,28 @@ export function DocumentReviewDialog({
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      {" "}
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="review-dialog-title"
         className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-xl"
       >
-        {" "}
         <div className="flex items-start justify-between gap-4 border-b border-gray-100 p-5 sm:p-6">
-          {" "}
           <div>
-            {" "}
             <p className="text-sm font-medium text-green-700">
-              Document submission{" "}
-            </p>{" "}
+              Document submission
+            </p>
             <h2
               id="review-dialog-title"
               className="mt-1 text-xl font-bold text-gray-900"
             >
-              Review details{" "}
-            </h2>{" "}
+              Review details
+            </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Submitted {formatDate(document.uploadedAt)}{" "}
-            </p>{" "}
+              Submitted {formatDate(document.uploadedAt)}
+            </p>
           </div>
+
           <button
             type="button"
             onClick={onClose}
@@ -56,6 +54,7 @@ export function DocumentReviewDialog({
             Close
           </button>
         </div>
+
         <div className="space-y-6 p-5 sm:p-6">
           <div className="grid gap-4 sm:grid-cols-2">
             <Detail label="Student name" value={student.fullName} />
@@ -101,12 +100,15 @@ export function DocumentReviewDialog({
             </div>
 
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-600">
-              {document.aiComment || "No AI verification comments available."}
+              {document.aiComment ||
+                "No AI verification comments available."}
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900">Uploaded document</h3>
+            <h3 className="font-semibold text-gray-900">
+              Uploaded document
+            </h3>
             <p className="mt-1 text-sm text-gray-500">
               Open the original document in a new tab to inspect it.
             </p>
@@ -138,11 +140,10 @@ export function DocumentReviewDialog({
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      {" "}
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-        {label}{" "}
-      </p>{" "}
-      <p className="mt-1 text-sm font-medium text-gray-900">{value}</p>{" "}
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-medium text-gray-900">{value}</p>
     </div>
   );
 }

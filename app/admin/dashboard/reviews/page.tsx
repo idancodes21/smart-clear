@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -60,6 +61,7 @@ export default function ClearanceReviewsPage() {
 
   const filteredDocuments = useMemo(() => {
     if (!data) return [];
+
     const query = search.trim().toLowerCase();
 
     return data.documents.filter((document) => {
@@ -83,33 +85,33 @@ export default function ClearanceReviewsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
-      {" "}
       <div className="mx-auto max-w-7xl space-y-6">
-        {" "}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {" "}
           <div>
-            {" "}
             <p className="text-sm font-medium text-green-700">
-              Administration{" "}
-            </p>{" "}
+              Administration
+            </p>
             <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Clearance Reviews{" "}
-            </h1>{" "}
+              Clearance Reviews
+            </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Review student documents and inspect AI verification results.{" "}
-            </p>{" "}
+              Review student documents and inspect AI verification results.
+            </p>
           </div>
+
           <button
             type="button"
             onClick={() => void fetchReviews()}
             disabled={loading}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </button>
         </div>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <ReviewStatCard
             label="Pending Review"
@@ -136,6 +138,7 @@ export default function ClearanceReviewsPage() {
             iconClass="bg-blue-100 text-blue-700"
           />
         </div>
+
         <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col gap-4 border-b border-gray-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div>
@@ -205,6 +208,7 @@ export default function ClearanceReviewsPage() {
           )}
         </section>
       </div>
+
       {selectedDocument && (
         <DocumentReviewDialog
           document={selectedDocument}

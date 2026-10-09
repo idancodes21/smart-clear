@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Eye, FileText } from "lucide-react";
@@ -19,12 +20,12 @@ export function ReviewsTable({ documents, onView }: ReviewsTableProps) {
   if (documents.length === 0) {
     return (
       <div className="flex flex-col items-center px-6 py-16 text-center">
-        {" "}
         <div className="rounded-full bg-gray-100 p-4">
-          {" "}
-          <FileText className="h-7 w-7 text-gray-400" />{" "}
+          <FileText className="h-7 w-7 text-gray-400" />
         </div>
-        <h3 className="mt-4 font-semibold text-gray-900">No documents found</h3>
+        <h3 className="mt-4 font-semibold text-gray-900">
+          No documents found
+        </h3>
         <p className="mt-1 max-w-sm text-sm text-gray-500">
           No submissions match your search and selected status.
         </p>
@@ -34,31 +35,35 @@ export function ReviewsTable({ documents, onView }: ReviewsTableProps) {
 
   return (
     <div className="overflow-x-auto">
-      {" "}
       <table className="w-full min-w-[950px] text-left text-sm">
         <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
           <tr>
-            {" "}
-            <th className="px-5 py-3.5 font-medium">Student</th>{" "}
-            <th className="px-5 py-3.5 font-medium">Clearance</th>{" "}
-            <th className="px-5 py-3.5 font-medium">AI result</th>{" "}
-            <th className="px-5 py-3.5 font-medium">Submitted</th>{" "}
-            <th className="px-5 py-3.5 font-medium">Status</th>{" "}
-            <th className="px-5 py-3.5 text-right font-medium">Action</th>{" "}
-          </tr>{" "}
+            <th className="px-5 py-3.5 font-medium">Student</th>
+            <th className="px-5 py-3.5 font-medium">Clearance</th>
+            <th className="px-5 py-3.5 font-medium">AI result</th>
+            <th className="px-5 py-3.5 font-medium">Submitted</th>
+            <th className="px-5 py-3.5 font-medium">Status</th>
+            <th className="px-5 py-3.5 text-right font-medium">Action</th>
+          </tr>
         </thead>
+
         <tbody className="divide-y divide-gray-100">
           {documents.map((document) => {
             const student = document.clearance.student;
             const status = getReviewStatus(document);
 
             return (
-              <tr key={document.id} className="transition hover:bg-gray-50/70">
+              <tr
+                key={document.id}
+                className="transition hover:bg-gray-50/70"
+              >
                 <td className="px-5 py-4">
                   <p className="font-medium text-gray-900">
                     {student.fullName}
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">{student.regNo}</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {student.regNo}
+                  </p>
                 </td>
 
                 <td className="px-5 py-4">
