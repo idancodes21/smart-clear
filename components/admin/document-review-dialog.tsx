@@ -31,12 +31,24 @@ export function DocumentReviewDialog({
     decision: Extract<ReviewStatus, "APPROVED" | "REJECTED">,
   ) {
     setError("");
+
+    const trimmedComment = comment.trim();
+
+    if (decision === "REJECTED" && !trimmedComment) {
+      setError("Please provide a reason before rejecting this document.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await onDecision(document.id, decision, comment.trim());
-    } catch {
-      setError("Failed to save the decision. Please try again.");
+      await onDecision(document.id, decision, trimmedComment);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to save the decision. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -127,15 +139,12 @@ export function DocumentReviewDialog({
             </div>
 
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-600">
-              {document.aiComment ||
-                "No AI verification comments available."}
+              {document.aiComment || "No AI verification comments available."}
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900">
-              Uploaded document
-            </h3>
+            <h3 className="font-semibold text-gray-900">Uploaded document</h3>
             <p className="mt-1 text-sm text-gray-500">
               Open the original document in a new tab to inspect it.
             </p>
@@ -161,9 +170,7 @@ export function DocumentReviewDialog({
 
           <div className="rounded-xl border border-gray-200 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="font-semibold text-gray-900">
-                Officer decision
-              </h3>
+              <h3 className="font-semibold text-gray-900">Officer decision</h3>
               <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
                 Current status: {formatLabel(status)}
               </span>
