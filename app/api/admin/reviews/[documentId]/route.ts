@@ -1,7 +1,7 @@
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/get-admin-session";
+import { sendEmail } from "@/lib/email";
 
 type RouteContext = {
   params: Promise<{
@@ -9,10 +9,21 @@ type RouteContext = {
   }>;
 };
 
-export async function PATCH(
-  req: Request,
-  { params }: RouteContext,
-) {
+function escapeHtml(value: string): string {
+  const entities: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+
+  return value.replace(/[&<>"']/g, (character) => {
+    return entities[character];
+  });
+}
+
+export async function PATCH(req: Request, { params }: RouteContext) {
   try {
     const officer = await getAdminSession();
 
@@ -43,11 +54,7 @@ export async function PATCH(
       );
     }
 
-    if (
-      typeof body !== "object" ||
-      body === null ||
-      Array.isArray(body)
-    ) {
+    if (typeof body !== "object" || body === null || Array.isArray(body)) {
       return NextResponse.json(
         { message: "Invalid request body." },
         { status: 400 },
@@ -59,10 +66,7 @@ export async function PATCH(
       comment?: unknown;
     };
 
-    if (
-      decision !== "APPROVED" &&
-      decision !== "REJECTED"
-    ) {
+    if (decision !== "APPROVED" && decision !== "REJECTED") {
       return NextResponse.json(
         {
           message: "Decision must be APPROVED or REJECTED.",
@@ -71,18 +75,14 @@ export async function PATCH(
       );
     }
 
-    if (
-      comment !== undefined &&
-      typeof comment !== "string"
-    ) {
+    if (comment !== undefined && typeof comment !== "string") {
       return NextResponse.json(
         { message: "Comment must be a string." },
         { status: 400 },
       );
     }
 
-    const officerComment =
-      typeof comment === "string" ? comment.trim() : "";
+    const officerComment = typeof comment === "string" ? comment.trim() : "";
 
     if (officerComment.length > 2000) {
       return NextResponse.json(
@@ -93,7 +93,6 @@ export async function PATCH(
       );
     }
 
-    // A rejection should include a reason for the student.
     if (decision === "REJECTED" && !officerComment) {
       return NextResponse.json(
         {
@@ -103,18 +102,25 @@ export async function PATCH(
       );
     }
 
-    const existingDocument =
-      await prisma.document.findUnique({
-        where: { id: documentId },
-        include: {
-          clearance: {
-            select: {
-              id: true,
-              studentId: true,
+    const existingDocument = await prisma.document.findUnique({
+      where: { id: documentId },
+      include: {
+        clearance: {
+          select: {
+            id: true,
+            studentId: true,
+            type: true,
+            student: {
+              select: {
+                fullName: true,
+                regNo: true,
+                email: true,
+              },
             },
           },
         },
-      });
+      },
+    });
 
     if (!existingDocument) {
       return NextResponse.json(
@@ -123,7 +129,7 @@ export async function PATCH(
       );
     }
 
-    // Save the decision and update the associated clearance together.
+    // Save the officer's decision before attempting email delivery.
     const result = await prisma.$transaction(async (tx) => {
       const document = await tx.document.update({
         where: { id: documentId },
@@ -153,12 +159,101 @@ export async function PATCH(
       return { document, clearance };
     });
 
+    // Email is deliberately outside the database transaction.
+    let notificationSent = false;
+
+    const student = existingDocument.clearance.student;
+    const clearanceType = existingDocument.clearance.type;
+    const approved = decision === "APPROVED";
+
+    let notificationMessage: string;
+
+    if (!student.email) {
+      notificationMessage =
+        "The decision was saved, but the student has no email address on record.";
+    } else {
+      const studentName = escapeHtml(student.fullName);
+      const registrationNumber = escapeHtml(student.regNo);
+      const formattedClearance = escapeHtml(clearanceType.replace(/_/g, " "));
+      const safeComment = escapeHtml(
+        officerComment || "No additional comment was provided.",
+      );
+
+      const subject = approved
+        ? `SmartClear: ${formattedClearance} approved`
+        : `SmartClear: ${formattedClearance} requires correction`;
+
+      const nextStep = approved
+        ? "Your document has been approved, and this clearance has been marked as completed."
+        : "Please review the officer's comment, correct the document as needed, and follow the clearance process to submit it again.";
+
+      const html = `
+    <div style="font-family: Arial, sans-serif; color: #1f2937; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #15803d;">SmartClear</h2>
+      <p>Hello ${studentName},</p>
+      <p>Your clearance document has been reviewed by an officer.</p>
+
+      <div style="padding: 16px; background: #f9fafb; border-radius: 8px;">
+        <p><strong>Registration number:</strong> ${registrationNumber}</p>
+        <p><strong>Clearance:</strong> ${formattedClearance}</p>
+        <p><strong>Decision:</strong> ${decision}</p>
+        <p><strong>Officer's comment:</strong></p>
+        <p style="white-space: pre-wrap;">${safeComment}</p>
+      </div>
+
+      <p>${nextStep}</p>
+      <p>Please sign in to SmartClear to view your clearance status.</p>
+      <p>Regards,<br />SmartClear Team</p>
+    </div>
+  `;
+
+      const text = [
+        "SmartClear - Clearance Review Update",
+        "",
+        `Hello ${student.fullName},`,
+        "",
+        `Registration number: ${student.regNo}`,
+        `Clearance: ${clearanceType.replace(/_/g, " ")}`,
+        `Decision: ${decision}`,
+        `Officer's comment: ${officerComment || "No additional comment was provided."}`,
+        "",
+        nextStep,
+        "",
+        "Please sign in to SmartClear to view your clearance status.",
+        "",
+        "Regards,",
+        "SmartClear Team",
+      ].join("\n");
+
+      try {
+        await sendEmail({
+          to: student.email,
+          subject,
+          html,
+          text,
+        });
+
+        notificationSent = true;
+        notificationMessage =
+          "The decision was saved and the notification was accepted by Resend.";
+      } catch (emailError) {
+        console.error(
+          "Officer decision saved, but student email failed:",
+          emailError,
+        );
+
+        notificationMessage =
+          "The decision was saved, but the email could not be sent. Please try sending the notification again later.";
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message:
-        decision === "APPROVED"
-          ? "Document approved successfully."
-          : "Document rejected successfully.",
+      notificationSent,
+      message: approved
+        ? "Document approved successfully."
+        : "Document rejected successfully.",
+      notificationMessage,
       document: result.document,
       clearance: result.clearance,
     });
