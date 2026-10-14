@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAdminSession } from "@/lib/get-admin-session";
 import { sendEmail } from "@/lib/email";
+import { issueCertificateIfEligible } from "@/lib/issue-certificate-if-eligible";
 
 type RouteContext = {
   params: Promise<{
@@ -134,37 +135,43 @@ export async function PATCH(req: Request, { params }: RouteContext) {
       const document = await tx.document.update({
         where: { id: documentId },
         data: {
+          status: decision,
           officerDecision: decision,
-          officerComment: officerComment || null,
+          officerComment: comment,
           reviewedAt: new Date(),
         },
       });
 
       const clearance = await tx.clearance.update({
-        where: {
-          id: existingDocument.clearance.id,
+        where: { id: document.clearanceId },
+        data: {
+          status: decision === "APPROVED" ? "COMPLETED" : "REJECTED",
+          progress: decision === "APPROVED" ? 100 : 0,
         },
-        data:
-          decision === "APPROVED"
-            ? {
-                status: "COMPLETED",
-                progress: 100,
-              }
-            : {
-                status: "REJECTED",
-                progress: 0,
-              },
       });
 
       return { document, clearance };
     });
 
-    // Email is deliberately outside the database transaction.
     let notificationSent = false;
 
     const student = existingDocument.clearance.student;
     const clearanceType = existingDocument.clearance.type;
     const approved = decision === "APPROVED";
+
+    let certificateIssued = false;
+
+    if (decision === "APPROVED") {
+      try {
+        const certificate = await issueCertificateIfEligible(
+          existingDocument.clearance.studentId,
+        );
+
+        certificateIssued = certificate !== null;
+      } catch (error) {
+        console.error("Certificate generation failed:", error);
+      }
+    }
 
     let notificationMessage: string;
 
@@ -250,6 +257,7 @@ export async function PATCH(req: Request, { params }: RouteContext) {
     return NextResponse.json({
       success: true,
       notificationSent,
+      certificateIssued,
       message: approved
         ? "Document approved successfully."
         : "Document rejected successfully.",

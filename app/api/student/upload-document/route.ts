@@ -4,6 +4,7 @@ import streamifier from "streamifier";
 import { verifyDocument } from "@/lib/verify-document";
 import { handleApiError } from "@/lib/api-error";
 import type { UploadApiResponse } from "cloudinary";
+import { issueCertificateIfEligible } from "@/lib/issue-certificate-if-eligible";
 
 export async function POST(req: Request) {
   try {
@@ -31,7 +32,10 @@ export async function POST(req: Request) {
     });
 
     if (!clearance) {
-      return Response.json({ error: "Clearance not found" }, { status: 404 });
+      return Response.json(
+        { error: "Clearance not found" },
+        { status: 404 },
+      );
     }
 
     const bytes = await file.arrayBuffer();
@@ -71,6 +75,7 @@ export async function POST(req: Request) {
       file,
     });
 
+    // Preserve the existing AI approval thresholds.
     const decision =
       result.score < 50
         ? "REJECTED"
@@ -97,6 +102,7 @@ export async function POST(req: Request) {
       },
     });
 
+    // Update clearance status based on the AI decision.
     await prisma.clearance.update({
       where: { id: clearanceId },
       data: {
@@ -105,9 +111,24 @@ export async function POST(req: Request) {
             ? "REJECTED"
             : decision === "PENDING"
               ? "PENDING_REVIEW"
-              : "IN_PROGRESS",
+              : "COMPLETED",
+        progress: decision === "APPROVED" ? 100 : 0,
       },
     });
+
+    let certificateIssued = false;
+
+    if (decision === "APPROVED") {
+      try {
+        const certificate = await issueCertificateIfEligible(
+          clearance.studentId,
+        );
+
+        certificateIssued = certificate !== null;
+      } catch (error) {
+        console.error("Certificate generation failed:", error);
+      }
+    }
 
     return Response.json({
       success: true,
@@ -121,6 +142,7 @@ export async function POST(req: Request) {
       verification: result,
       decision,
       officerReviewRequired: decision === "PENDING",
+      certificateIssued,
     });
   } catch (error) {
     console.error(error);
