@@ -62,8 +62,8 @@ export default function HomePage() {
         <div className="container mx-auto px-4 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-                <FileText className="h-5 w-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-md flex items-center justify-center">
+                <Image src="/smartclear-icon.svg" width={100} height={100} alt="logo" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-foreground">
@@ -229,7 +229,7 @@ export default function HomePage() {
         <footer className="text-center pt-8 border-t border-border">
           <div className="flex items-center justify-center gap-2 mb-3">
             <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center">
-              <FileText className="h-4 w-4 text-primary-foreground" />
+             <Image src="/smartclear-icon.svg" width={50} height={50} alt="logo" />
             </div>
             <span className="text-base font-semibold text-foreground">
               SmartClear
