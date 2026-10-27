@@ -130,7 +130,7 @@ const fetchDashboard = async () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Admin Management Center
+            Officer Management Center
           </h1>
           <p className="text-gray-600">Unniversity of Nigeria Nsukka</p>
         </div>
